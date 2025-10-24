@@ -1,11 +1,15 @@
+import 'dart:typed_data';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_app/features/profile/domain/repos/profile_repo.dart';
 import 'package:social_app/features/profile/presentation/cubits/profile_states.dart';
+import 'package:social_app/features/storage/domain/storage_repo.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
   final ProfileRepo profileRepo;
+  final StorageRepo storageRepo;
 
-  ProfileCubit({required this.profileRepo}): super(ProfileInitial());
+  ProfileCubit({required this.profileRepo, required this.storageRepo}): super(ProfileInitial());
 
   // fetch user profile using repo
   Future<void> fetchUserProfile(String uid) async{
@@ -27,6 +31,8 @@ class ProfileCubit extends Cubit<ProfileState> {
   Future<void> updateProfile({
     required String uid,
     String? newBio,
+    Uint8List? imageWebBytes,
+    String? imageMoblilePath,
   }) async{
     emit(ProfileLoading());
 
@@ -39,10 +45,32 @@ class ProfileCubit extends Cubit<ProfileState> {
       }
 
       // profile picture update
+      String? imageDownloadUrl;
 
+      //ensure there is an image
+      if(imageWebBytes != null || imageMoblilePath != null){
+        //for mobile
+        if(imageMoblilePath != null){
+          // upload
+          imageDownloadUrl = await storageRepo.uploadProfileImageMobile(imageMoblilePath, uid);
+        }
+        // for web
+        else if(imageWebBytes != null){
+          // upload
+          imageDownloadUrl  = await storageRepo.uploadProfileImageWeb(imageWebBytes, uid);
+        }
+        if(imageDownloadUrl == null){
+          emit(ProfileError("Failed to upload image"));
+          return;
+        }
+
+      }
 
       // update new profile 
-      final updatedProfile = currentUser.copyWith(newBio: newBio ?? currentUser.bio);
+      final updatedProfile = currentUser.copyWith(
+        newBio: newBio ?? currentUser.bio,
+        newProfileImageUrl: imageDownloadUrl ?? currentUser.profileImageUrl
+      );
 
       //update in repo
       await profileRepo.updateProfile(updatedProfile);

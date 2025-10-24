@@ -14,11 +14,11 @@ class ProfileUser extends AppUser
   });
 
   // method to update profile user
-  ProfileUser copyWith({String? newBio, String? newProfileImageUrl, String? newName}){
+  ProfileUser copyWith({String? newBio, String? newProfileImageUrl}){
     return ProfileUser(
       uid: uid, 
       email: email, 
-      name: newName ?? name, 
+      name: name, 
       bio: newBio ?? bio, 
       profileImageUrl: newProfileImageUrl ?? profileImageUrl
     );

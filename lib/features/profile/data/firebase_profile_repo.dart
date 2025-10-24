@@ -44,13 +44,16 @@ class FirebaseProfileRepo implements ProfileRepo{
         .collection('users')
         .doc(updatedProfile.uid)
         .update({
-          'name': updatedProfile.name,
-          'bio': updatedProfile.bio, 'profileImageUrl':updatedProfile.profileImageUrl
+          'bio': updatedProfile.bio, 
+          'profileImageUrl':updatedProfile.profileImageUrl
         });
     }
     
-    catch(e){
-      throw Exception(e);
+    catch (e) {
+      print(
+        'Erreur lors de la mise à jour du profil: $e',
+      ); 
+      rethrow; // ← Relancer l'erreur pour la gérer ailleurs
     }
   }
    
